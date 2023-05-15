@@ -6,6 +6,14 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  # Setting an environment variable with the value of a configuration variable
+  DB_RESOURCE_ARN: ${{ vars.DB_RESOURCE_ARN }}
+  DB_NAME: ${{ vars.DB_NAME }}
+  DB_REGION: ${{ vars.DB_REGION }}
+  DB_SECRET_ARN: ${{ vars.DB_SECRET_ARN }}
+  DATA_API_PORT: ${{ vars.DATA_API_PORT }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
