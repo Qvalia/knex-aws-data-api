@@ -28,13 +28,14 @@ services:
       POSTGRES_DB: ${DB_NAME}
     ports:
       - "8543:5432"
-  knex-da-mysql:
-    image: mysql:8
-    command: --default-authentication-plugin=mysql_native_password
-    restart: always
-    platform: linux/amd64
-    environment:
-      MYSQL_ROOT_PASSWORD: secretpassword
-      MYSQL_DATABASE: ${DB_NAME}
-    ports:
-        - "8330:3306"
+  # Mysql container commented out for now but to be used for future integrations
+  # knex-da-mysql:
+  #   image: mysql:8
+  #   command: --default-authentication-plugin=mysql_native_password
+  #   restart: always
+  #   platform: linux/amd64
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: secretpassword
+  #     MYSQL_DATABASE: ${DB_NAME}
+  #   ports:
+  #       - "8330:3306"
