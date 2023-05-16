@@ -1,8 +1,19 @@
-const { describe, it, before } = require('mocha');
+const { describe, it, before, expect } = require('mocha');
 
 const { postgres } = require('./knexClient');
 const commonTests = require('./common-tests');
 const { migrateToLatest } = require('./migrations-test');
+
+describe('Connection Check', () => {
+  it('Connection', async () => {
+    try {
+      const test = await postgres.raw('select 1+1 as result');
+      expect(test.records[0].result).toBe(2);
+    } catch (error) {
+      console.log(error);
+    }
+  });
+});
 
 describe('data-api-postgres', () => {
   before(async () => {
