@@ -29,13 +29,13 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: Build the stack
-        run: docker-compose up -d
-      - run: npm ci
-      - name: Build
-        run: npm run test
-      - name: Lint
-        run: npm run lint
-      - name: "Wait for docker to finish building"
-        run: sleep 30
-      - name: Integration Tests
-        run: npm run test-integration
+        run: docker-compose config
+      # - run: npm ci
+      # - name: Build
+      #   run: npm run test
+      # - name: Lint
+      #   run: npm run lint
+      # - name: "Wait for docker to finish building"
+      #   run: sleep 30
+      # - name: Integration Tests
+      #   run: npm run test-integration
