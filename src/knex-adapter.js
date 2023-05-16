@@ -1,15 +1,14 @@
-/* eslint-disable no-underscore-dangle */
 /* eslint-disable no-param-reassign */
+/* eslint-disable no-underscore-dangle */
 
 const dataApiClient = require('data-api-client');
 const util = require('util');
 
-const DataAPITransaction = require('./data-api-transaction');
-const sqlstring = require('./sqlstring');
-const types = require('./types');
+const DataAPITransaction = require('./data-api/data-api-transaction');
+const sqlstring = require('./helper/sqlstring');
+const types = require('./helper/types');
 
-// Call mysql client to setup knex, this set as this function
-function dataAPI(ClientRDSDataAPI, Client, dialect) {
+function knexAdapter(ClientRDSDataAPI, Client, dialect) {
   // Object.setPrototypeOf(ClientRDSDataAPI.prototype, Client.prototype);
   util.inherits(ClientRDSDataAPI, Client);
 
@@ -181,4 +180,4 @@ function dataAPI(ClientRDSDataAPI, Client, dialect) {
   });
 }
 
-module.exports = dataAPI;
+module.exports = knexAdapter;

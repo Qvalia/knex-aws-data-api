@@ -1,5 +1,5 @@
 const PostgresClient = require('knex/lib/dialects/postgres');
-const dataApi = require('./data-api');
+const knexAdapter = require('./knex-adapter');
 const constants = require('./constants');
 
 // Call postgres client to setup knex, this set as this function
@@ -9,6 +9,6 @@ const client = PostgresClient.constructor
       PostgresClientRDSDataAPI.call(this, config);
     };
 
-dataApi(client, PostgresClient, constants.dialects.postgres);
+knexAdapter(client, PostgresClient, constants.dialects.postgres);
 
 module.exports = client;

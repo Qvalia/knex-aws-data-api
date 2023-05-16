@@ -131,3 +131,4 @@ dist
 
 cdk.out
 .DS_Store
+db-data

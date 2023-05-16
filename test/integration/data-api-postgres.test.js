@@ -17,8 +17,6 @@ describe('Connection Check', () => {
 
 describe('data-api-postgres', () => {
   before(async () => {
-    // eslint-disable-next-line no-console
-    console.log('Before');
     const tables = await postgres
       .select('table_name')
       .from('information_schema.tables')
@@ -28,7 +26,6 @@ describe('data-api-postgres', () => {
 
     for (let i = 0; i < tableNames.length; i += 1) {
       const tableName = tableNames[tableNames.length - i - 1];
-      // eslint-disable-next-line no-console
       console.log(`Drop table ${tableName}`);
       // eslint-disable-next-line no-await-in-loop
       await postgres.raw(`DROP TABLE "${tableName}" CASCADE`);
