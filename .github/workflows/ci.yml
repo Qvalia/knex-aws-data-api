@@ -35,5 +35,7 @@ jobs:
         run: npm run test
       - name: Lint
         run: npm run lint
+      - name: "Wait for docker to finish building"
+        run: sleep 30
       - name: Integration Tests
         run: npm run test-integration
