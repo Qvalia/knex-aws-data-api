@@ -1,9 +1,9 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-underscore-dangle */
 
-const dataApiClient = require('data-api-client');
 const util = require('util');
 
+const dataApiClient = require('./data-api/data-api-client');
 const DataAPITransaction = require('./data-api/data-api-transaction');
 const sqlstring = require('./helper/sqlstring');
 const types = require('./helper/types');
