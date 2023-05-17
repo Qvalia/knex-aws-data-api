@@ -9,7 +9,7 @@
   "scripts": {
     "lint": "eslint src",
     "test-integration": "jest --config=jest.config.js --testMatch **/test/**/*.test.js",
-    "test": "mocha src/**/*.test.js --timeout 10000",
+    "test": "jest --config=jest.config.js --testMatch **/src/**/*.test.js",
     "package": "rm -rf node_modules && npm install --prod"
   },
   "repository": {
@@ -52,5 +52,8 @@
     "mysql": "2.18.1",
     "pg": "8.10.0",
     "prettier": "^2.8.7"
+  },
+  "dependencies": {
+    "rewire": "^6.0.0"
   }
 }

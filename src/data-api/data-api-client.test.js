@@ -1,30 +1,40 @@
-const dataApiClient = require('./dataApiClient');
+/* eslint-disable global-require */
+/* eslint-disable no-underscore-dangle */
+const rewire = require('rewire');
+const {
+  RDSDataClient,
+  ExecuteStatementCommand,
+  BatchExecuteStatementCommand,
+  BeginTransactionCommand,
+  CommitTransactionCommand,
+  RollbackTransactionCommand
+} = require('@aws-sdk/client-rds-data');
 
-jest.mock('./dataApiClient');
-
+const dataApiClient = rewire('./data-api-client');
+jest.mock('@aws-sdk/client-rds-data');
 
 describe('utility', () => {
 
   test('error', async () => {
-    const {error} = dataApiClient;
+    const error = dataApiClient.__get__('error');
     const err = () => error('test error');
     expect(err).toThrow('test error');
   });
 
   test('omit', async () => {
-    const {omit} = dataApiClient;
+    const omit = dataApiClient.__get__('omit');
     const result = omit({ a: 1, b: 2, c: 3 }, ['c']);
     expect(result).toEqual({ a: 1, b: 2 });
   });
 
   test('pick', async () => {
-    const {pick} = dataApiClient;
+    const pick = dataApiClient.__get__('pick');
     const result = pick({ a: 1, b: 2, c: 3 }, ['a', 'c']);
     expect(result).toEqual({ a: 1, c: 3 });
   });
 
   test('flatten', async () => {
-    const {flatten} = dataApiClient;
+    const flatten = dataApiClient.__get__('flatten');
     const result = flatten([[1, 2, 3], 4, [5, 6], 7, 8]);
     expect(result).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
   });
@@ -36,7 +46,7 @@ describe('query parsing', () => {
 
   describe('parseSQL', () => {
 
-    const {parseSQL} = dataApiClient;
+    const parseSQL = dataApiClient.__get__('parseSQL');
 
     test('string', async () => {
       const result = parseSQL([`SELECT * FROM myTable`]);
@@ -57,7 +67,7 @@ describe('query parsing', () => {
 
   describe('parseParams', () => {
 
-    const {parseParams} = dataApiClient;
+    const parseParams = dataApiClient.__get__('parseParams');
 
     test('array', async () => {
       const result = parseParams(['query', [1, 2]]);
@@ -107,14 +117,14 @@ describe('query parsing', () => {
 describe('query configuration parsing', () => {
 
   test('mergeConfig', async () => {
-    const {mergeConfig} = dataApiClient;
+    const mergeConfig = dataApiClient.__get__('mergeConfig');
     const result = mergeConfig({ secretArn: 'secretArn', resourceArn: 'resourceArn' }, { database: 'db' });
     expect(result).toEqual({ secretArn: 'secretArn', resourceArn: 'resourceArn', database: 'db' });
   });
 
   describe('parseDatabase', () => {
 
-    const {parseDatabase} = dataApiClient;
+    const parseDatabase = dataApiClient.__get__('parseDatabase');
 
     test('from config w/ transaction', async () => {
       const result = parseDatabase({ database: 'db', transactionId: 'txid' });
@@ -138,14 +148,14 @@ describe('query configuration parsing', () => {
 
     test('no database provided (return undefined)', async () => {
       const result = parseDatabase({}, [{}]);
-      expect(result).toBeUndefined();
+      expect(result).toBe.undefined;
     });
 
   }); // end parseDatabase
 
   describe('parseHydrate', () => {
 
-    const {parseHydrate} = dataApiClient;
+    const parseHydrate = dataApiClient.__get__('parseHydrate');
 
     test('parseHydrate - from args', async () => {
       const result = parseHydrate({ hydrateColumnNames: true }, [{ hydrateColumnNames: false }]);
@@ -167,7 +177,7 @@ describe('query configuration parsing', () => {
 
   describe('prepareParams', () => {
 
-    const {prepareParams} = dataApiClient;
+    const prepareParams = dataApiClient.__get__('prepareParams');
 
     test('prepareParams - omit specific args, merge others', async () => {
       const result = prepareParams({ secretArn: 'secretArn', resourceArn: 'resourceArn' },
@@ -188,7 +198,7 @@ describe('query configuration parsing', () => {
 describe('query parameter processing', () => {
 
   test('splitParams', async () => {
-    const {splitParams} = dataApiClient;
+    const splitParams = dataApiClient.__get__('splitParams');
     const result = splitParams({ param1: 'p1', param2: 'p2' });
     expect(result).toEqual([
       { name: 'param1', value: 'p1' },
@@ -197,7 +207,7 @@ describe('query parameter processing', () => {
   });
 
   test('normalizeParams', async () => {
-    const {normalizeParams} = dataApiClient;
+    const normalizeParams = dataApiClient.__get__('normalizeParams');
     const result = normalizeParams([
       { name: 'param1', value: 'p1' },
       { param2: 'p2' },
@@ -219,7 +229,7 @@ describe('query parameter processing', () => {
 
   describe('formatType', () => {
 
-    const {formatType} = dataApiClient;
+    const formatType = dataApiClient.__get__('formatType');
 
     test('stringValue', async () => {
       const result = formatType('param', 'string val', 'stringValue');
@@ -251,7 +261,7 @@ describe('query parameter processing', () => {
 
   describe('getType', () => {
 
-    const {getType} = dataApiClient;
+    const getType = dataApiClient.__get__('getType');
 
     test('stringValue', async () => {
       const result = getType('string');
@@ -294,7 +304,7 @@ describe('query parameter processing', () => {
 
   describe('formatParam', () => {
 
-    const {formatParam} = dataApiClient;
+    const formatParam = dataApiClient.__get__('formatParam');
 
     test('stringValue', async () => {
       const result = formatParam('param', 'string');
@@ -346,7 +356,7 @@ describe('query parameter processing', () => {
 
   describe('getSqlParams', () => {
 
-    const {getSqlParams} = dataApiClient;
+    const getSqlParams = dataApiClient.__get__('getSqlParams');
 
     test('named parameters', async () => {
       const result = getSqlParams('SELECT * FROM myTable WHERE id = :id AND test = :test');
@@ -363,7 +373,7 @@ describe('query parameter processing', () => {
 
   describe('processParams', () => {
 
-    const {processParams} = dataApiClient;
+    const processParams = dataApiClient.__get__('processParams');
 
     test('single param, single record', async () => {
       const { processedParams, escapedSql } = processParams(
@@ -488,23 +498,21 @@ describe('querying', () => {
 
   describe('query', () => {
 
-    const {query} = dataApiClient;
+    const query = dataApiClient.__get__('query');
 
     let parameters = {};
+    jest.spyOn(ExecuteStatementCommand.prototype, 'constructor');
 
     const config = {
       secretArn: 'secretArn',
       resourceArn: 'resourceArn',
       database: 'db',
       RDS: {
-        executeStatement: (params) => {
+        send: (awsExecuteObject) => {
           // capture the parameters for testing
-          parameters = params;
-          return {
-            promise: () => {
-              return require('./test/sample-query-response.json');
-            }
-          };
+          // ExecuteStatementCommand contains input property which has the configs
+          parameters = awsExecuteObject.input;
+          return Promise.resolve(require('../../test/test-data/data-api-client/sample-query-response.json'));
         }
       }
     };
@@ -532,10 +540,10 @@ describe('querying', () => {
 
   describe('formatRecords', () => {
 
-    const {formatRecords} = dataApiClient;
+    const formatRecords = dataApiClient.__get__('formatRecords');
 
     test('with columnMetadata', async () => {
-      const { records, columnMetadata } = require('./test/sample-query-response.json');
+      const { records, columnMetadata } = require('../../test/test-data/data-api-client/sample-query-response.json');
       const result = formatRecords(records, columnMetadata, true);
       expect(result).toEqual([
         {
@@ -558,7 +566,7 @@ describe('querying', () => {
     });
 
     test('without columnMetadata', async () => {
-      const { records } = require('./test/sample-query-response.json');
+      const { records } = require('../../test/test-data/data-api-client/sample-query-response.json');
       const result = formatRecords(records, false);
       expect(result).toEqual([
         [1, 'Category 1', null, '2019-11-12 22:00:11', '2019-11-12 22:15:25', null],
@@ -570,10 +578,10 @@ describe('querying', () => {
 
   describe('formatUpdateResults', () => {
 
-    const {formatUpdateResults} = dataApiClient;
+    const formatUpdateResults = dataApiClient.__get__('formatUpdateResults');
 
     test('with insertIds', async () => {
-      const { updateResults } = require('./test/sample-batch-insert-response.json');
+      const { updateResults } = require('../../test/test-data/data-api-client/sample-batch-insert-response.json');
       const result = formatUpdateResults(updateResults);
       expect(result).toEqual([
         { insertId: 316 },
@@ -582,7 +590,7 @@ describe('querying', () => {
     });
 
     test('without insertIds', async () => {
-      const { updateResults } = require('./test/sample-batch-update-response.json');
+      const { updateResults } = require('../../test/test-data/data-api-client/sample-batch-update-response.json');
       const result = formatUpdateResults(updateResults);
       expect(result).toEqual([
         {},
@@ -595,10 +603,10 @@ describe('querying', () => {
 
   describe('formatResults', () => {
 
-    const {formatResults} = dataApiClient;
+    const formatResults = dataApiClient.__get__('formatResults');
 
     test('select (hydrate)', async () => {
-      const response = require('./test/sample-query-response.json');
+      const response = require('../../test/test-data/data-api-client/sample-query-response.json');
       const result = formatResults(response, true, false);
       expect(result).toEqual({
         records: [
@@ -623,7 +631,7 @@ describe('querying', () => {
     });
 
     test('select (hydrate) with date deserialization', async () => {
-      const response = require('./test/sample-query-response.json');
+      const response = require('../../test/test-data/data-api-client/sample-query-response.json');
       const result = formatResults(response, true, false, { deserializeDate: true });
       expect(result).toEqual({
         records: [
@@ -649,7 +657,7 @@ describe('querying', () => {
 
 
     test('select (no hydrate)', async () => {
-      const response = require('./test/sample-query-response.json');
+      const response = require('../../test/test-data/data-api-client/sample-query-response.json');
       const result = formatResults(response, false, false);
       expect(result).toEqual({
         records: [
@@ -660,8 +668,8 @@ describe('querying', () => {
     });
 
     test('select (with metadata)', async () => {
-      const response = require('./test/sample-query-response.json');
-      const { columnMetadata } = require('./test/sample-query-response.json');
+      const response = require('../../test/test-data/data-api-client/sample-query-response.json');
+      const { columnMetadata } = require('../../test/test-data/data-api-client/sample-query-response.json');
       const result = formatResults(response, false, true);
       expect(result).toEqual({
         columnMetadata,
@@ -673,7 +681,7 @@ describe('querying', () => {
     });
 
     test('select (with date deserialization to UTC)', async () => {
-      const response = require('./test/sample-query-response.json');
+      const response = require('../../test/test-data/data-api-client/sample-query-response.json');
       const result = formatResults(response, false, false, { deserializeDate: true });
       expect(result).toEqual({
         records: [
@@ -684,7 +692,7 @@ describe('querying', () => {
     });
 
     test('select (with date deserialization to local TZ)', async () => {
-      const response = require('./test/sample-query-response.json');
+      const response = require('../../test/test-data/data-api-client/sample-query-response.json');
       const result = formatResults(response, false, false, { deserializeDate: true, treatAsLocalDate: true });
       expect(result).toEqual({
         records: [
@@ -695,7 +703,7 @@ describe('querying', () => {
     });
 
     test('update', async () => {
-      const response = require('./test/sample-update-response.json');
+      const response = require('../../test/test-data/data-api-client/sample-update-response.json');
       const result = formatResults(response, false, false);
       expect(result).toEqual({
         numberOfRecordsUpdated: 1
@@ -703,7 +711,7 @@ describe('querying', () => {
     });
 
     test('delete', async () => {
-      const response = require('./test/sample-delete-response.json');
+      const response = require('../../test/test-data/data-api-client/sample-delete-response.json');
       const result = formatResults(response, false, false);
       expect(result).toEqual({
         numberOfRecordsUpdated: 1
@@ -711,7 +719,7 @@ describe('querying', () => {
     });
 
     test('insert', async () => {
-      const response = require('./test/sample-insert-response.json');
+      const response = require('../../test/test-data/data-api-client/sample-insert-response.json');
       const result = formatResults(response, false, false);
       expect(result).toEqual({
         insertId: 315,
@@ -720,7 +728,7 @@ describe('querying', () => {
     });
 
     test('batch update', async () => {
-      const response = require('./test/sample-batch-update-response.json');
+      const response = require('../../test/test-data/data-api-client/sample-batch-update-response.json');
       const result = formatResults(response, false, false);
       expect(result).toEqual({
         updateResults: [{}, {}]
@@ -728,7 +736,7 @@ describe('querying', () => {
     });
 
     test('batch delete', async () => {
-      const response = require('./test/sample-batch-delete-response.json');
+      const response = require('../../test/test-data/data-api-client/sample-batch-delete-response.json');
       const result = formatResults(response, false, false);
       expect(result).toEqual({
         updateResults: [{}, {}]
@@ -736,7 +744,7 @@ describe('querying', () => {
     });
 
     test('batch insert', async () => {
-      const response = require('./test/sample-batch-insert-response.json');
+      const response = require('../../test/test-data/data-api-client/sample-batch-insert-response.json');
       const result = formatResults(response, false, false);
       expect(result).toEqual({
         updateResults: [{ insertId: 316 }, { insertId: 317 }]

@@ -13,6 +13,7 @@ env:
   DB_REGION: ${{ vars.DB_REGION }}
   DB_SECRET_ARN: ${{ vars.DB_SECRET_ARN }}
   DATA_API_PORT: ${{ vars.DATA_API_PORT }}
+  AWS_SDK_LOAD_CONFIG: 1
 
 jobs:
   build:
