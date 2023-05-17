@@ -17,6 +17,7 @@ describe('Connection Check', () => {
 
 describe('data-api-postgres', () => {
   before(async () => {
+    console.log('Before');
     const tables = await postgres
       .select('table_name')
       .from('information_schema.tables')
