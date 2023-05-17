@@ -1,6 +1,3 @@
-const { expect } = require('chai');
-const { describe, it, before } = require('mocha');
-
 const { mysql } = require('./knexClient');
 const commonTests = require('./common-tests');
 const { migrateToLatest } = require('./migrations-test');
@@ -8,7 +5,7 @@ const { migrateToLatest } = require('./migrations-test');
 let counter = 0;
 
 describe('data-api-mysql', () => {
-  before(async () => {
+  beforeAll(async () => {
     const tables = await mysql
       .select('table_name')
       .from('information_schema.tables')
@@ -45,8 +42,8 @@ describe('data-api-mysql', () => {
       const actual = await mysql.table(tableName).insert({ value: 'test' }).returning('*');
 
       // This works differently in mysql compared to postgres. Mysql only returns the id
-      expect(actual.length).to.equal(1);
-      expect(actual[0]).to.equal(1);
+      expect(actual.length).toBe(1);
+      expect(actual[0]).toBe(1);
     });
 
     it('should insert a row and fetch the result', async () => {
@@ -67,9 +64,12 @@ describe('data-api-mysql', () => {
       await commonTests.queryForASingleField(mysql);
     });
 
-    it('should return an empty array for a query on an empty table', async () => {
-      await commonTests.returnEmptyArrayForQueryOnEmptyTable(mysql);
-    });
+    it(
+      'should return an empty array for a query on an empty table',
+      async () => {
+        await commonTests.returnEmptyArrayForQueryOnEmptyTable(mysql);
+      }
+    );
   });
 
   describe('first', () => {
@@ -77,9 +77,12 @@ describe('data-api-mysql', () => {
       await commonTests.queryForFirst(mysql);
     });
 
-    it('should return undefined for a first query that returns no results', async () => {
-      await commonTests.queryForFirstUndefined(mysql);
-    });
+    it(
+      'should return undefined for a first query that returns no results',
+      async () => {
+        await commonTests.queryForFirstUndefined(mysql);
+      }
+    );
   });
 
   describe('whereIn', () => {
@@ -108,7 +111,7 @@ describe('data-api-mysql', () => {
         await mysql.table(tableName).insert({ non_existing_colun: 'test' }).returning('*');
         throw new Error('Should throw an error');
       } catch (err) {
-        expect(err.message).to.contain('Unknown column');
+        expect(err.message).toContain('Unknown column');
       }
     });
 
@@ -117,7 +120,7 @@ describe('data-api-mysql', () => {
         await mysql.raw('select sadfasdfasdfasdf;');
         throw new Error('Should throw an error');
       } catch (err) {
-        expect(err.message).to.contain('Unknown column');
+        expect(err.message).toContain('Unknown column');
       }
     });
   });

@@ -1,5 +1,3 @@
-const { describe, it, before, expect } = require('mocha');
-
 const { postgres } = require('./knexClient');
 const commonTests = require('./common-tests');
 const { migrateToLatest } = require('./migrations-test');
@@ -16,7 +14,7 @@ describe('Connection Check', () => {
 });
 
 describe('data-api-postgres', () => {
-  before(async () => {
+  beforeAll(async () => {
     console.log('Before');
     const tables = await postgres
       .select('table_name')
@@ -46,9 +44,12 @@ describe('data-api-postgres', () => {
       await commonTests.insertRowAndFetch(postgres);
     });
 
-    it('should insert a row with jsonb and fetch the result with types applied', async () => {
-      await commonTests.insertRowWithJsonbAndReturnAnArrayOfRows(postgres);
-    });
+    it(
+      'should insert a row with jsonb and fetch the result with types applied',
+      async () => {
+        await commonTests.insertRowWithJsonbAndReturnAnArrayOfRows(postgres);
+      }
+    );
 
     it('should insert a row with timestamp as null', async () => {
       await commonTests.insertRowWithTimestampAsNull(postgres);
@@ -68,9 +69,12 @@ describe('data-api-postgres', () => {
       await commonTests.updateARowReturning(postgres);
     });
 
-    it('should update a row with jsonb and return the results with types applied', async () => {
-      await commonTests.updateRowWithJsonbReturning(postgres);
-    });
+    it(
+      'should update a row with jsonb and return the results with types applied',
+      async () => {
+        await commonTests.updateRowWithJsonbReturning(postgres);
+      }
+    );
   });
 
   describe('select', () => {
@@ -78,17 +82,23 @@ describe('data-api-postgres', () => {
       await commonTests.queryForASingleField(postgres);
     });
 
-    it('should return an empty array for a query on an empty table', async () => {
-      await commonTests.returnEmptyArrayForQueryOnEmptyTable(postgres);
-    });
+    it(
+      'should return an empty array for a query on an empty table',
+      async () => {
+        await commonTests.returnEmptyArrayForQueryOnEmptyTable(postgres);
+      }
+    );
 
     it('should query for a timestamp field', async () => {
       await commonTests.queryForATimestampField(postgres);
     });
 
-    it('should query for a timestamp field that truncates trailing zeros in milliseconds', async () => {
-      await commonTests.queryForATruncatedTimestampField(postgres);
-    });
+    it(
+      'should query for a timestamp field that truncates trailing zeros in milliseconds',
+      async () => {
+        await commonTests.queryForATruncatedTimestampField(postgres);
+      }
+    );
 
     // @todo Infinity value does not work as of now due to a bug in local-data-api container for local testing
     // it('should query for a timestamp field that has Infinity value', async () => {
@@ -121,9 +131,12 @@ describe('data-api-postgres', () => {
       await commonTests.queryForFirst(postgres);
     });
 
-    it('should return undefined for a first query that returns no results', async () => {
-      await commonTests.queryForFirstUndefined(postgres);
-    });
+    it(
+      'should return undefined for a first query that returns no results',
+      async () => {
+        await commonTests.queryForFirstUndefined(postgres);
+      }
+    );
   });
 
   describe('whereIn', () => {

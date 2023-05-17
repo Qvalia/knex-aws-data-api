@@ -1,5 +1,4 @@
 require('dotenv').config();
-const { describe, it, before } = require('mocha');
 
 const postgres = require('knex')({
   client: 'pg',
@@ -10,7 +9,7 @@ const commonTests = require('./common-tests');
 const { migrateToLatest } = require('./migrations-test');
 
 describe('postgres', () => {
-  before(async () => {
+  beforeAll(async () => {
     const tables = await postgres
       .select('table_name')
       .from('information_schema.tables')
@@ -45,9 +44,12 @@ describe('postgres', () => {
       await commonTests.insertRowAndFetch(postgres);
     });
 
-    it('should insert a row with jsonb and fetch the result with types applied', async () => {
-      await commonTests.insertRowWithJsonbAndReturnAnArrayOfRows(postgres);
-    });
+    it(
+      'should insert a row with jsonb and fetch the result with types applied',
+      async () => {
+        await commonTests.insertRowWithJsonbAndReturnAnArrayOfRows(postgres);
+      }
+    );
 
     it('should insert a row with timestamp as null', async () => {
       await commonTests.insertRowWithTimestampAsNull(postgres);
@@ -71,9 +73,12 @@ describe('postgres', () => {
       await commonTests.queryForASingleField(postgres);
     });
 
-    it('should return an empty array for a query on an empty table', async () => {
-      await commonTests.returnEmptyArrayForQueryOnEmptyTable(postgres);
-    });
+    it(
+      'should return an empty array for a query on an empty table',
+      async () => {
+        await commonTests.returnEmptyArrayForQueryOnEmptyTable(postgres);
+      }
+    );
 
     it('should query for a single json field', async () => {
       await commonTests.queryForASingleJSONField(postgres);
@@ -83,13 +88,19 @@ describe('postgres', () => {
       await commonTests.queryForATimestampField(postgres);
     });
 
-    it('should query for a timestamp field that truncates trailing zeros in milliseconds', async () => {
-      await commonTests.queryForATruncatedTimestampField(postgres);
-    });
+    it(
+      'should query for a timestamp field that truncates trailing zeros in milliseconds',
+      async () => {
+        await commonTests.queryForATruncatedTimestampField(postgres);
+      }
+    );
 
-    it('should query for a timestamp field that has Infinity value', async () => {
-      await commonTests.queryForAInfinityTimestampField(postgres);
-    });
+    it(
+      'should query for a timestamp field that has Infinity value',
+      async () => {
+        await commonTests.queryForAInfinityTimestampField(postgres);
+      }
+    );
 
     it('should query for a json array field', async () => {
       await commonTests.queryForAJSONArrayField(postgres);
@@ -105,9 +116,12 @@ describe('postgres', () => {
       await commonTests.queryForFirst(postgres);
     });
 
-    it('should return undefined for a first query that returns no results', async () => {
-      await commonTests.queryForFirstUndefined(postgres);
-    });
+    it(
+      'should return undefined for a first query that returns no results',
+      async () => {
+        await commonTests.queryForFirstUndefined(postgres);
+      }
+    );
   });
 
   describe('update', () => {
@@ -119,9 +133,12 @@ describe('postgres', () => {
       await commonTests.updateARowReturning(postgres);
     });
 
-    it('should update a row with jsonb and return the results with types applied', async () => {
-      await commonTests.updateRowWithJsonbReturning(postgres);
-    });
+    it(
+      'should update a row with jsonb and return the results with types applied',
+      async () => {
+        await commonTests.updateRowWithJsonbReturning(postgres);
+      }
+    );
   });
 
   describe('whereIn', () => {
@@ -167,7 +184,7 @@ describe('postgres', () => {
   });
 
   describe('knex-migrate', () => {
-    it('should setup a database with knex-migrate', async function () {
+    it('should setup a database with knex-migrate', async () => {
       this.timeout(100000);
 
       await migrateToLatest('test/integration/knexFiles/local-postgres.js');

@@ -1,5 +1,3 @@
-const { expect } = require('chai');
-
 let counter = 0;
 
 async function hasTableReturnsFalse(knex) {
@@ -8,7 +6,7 @@ async function hasTableReturnsFalse(knex) {
 
   const exists = await knex.schema.hasTable(tableName);
 
-  expect(exists).to.equal(false);
+  expect(exists).toBe(false);
 }
 
 async function deleteARowReturnsTheNumberOfRecords(knex) {
@@ -24,7 +22,7 @@ async function deleteARowReturnsTheNumberOfRecords(knex) {
 
   const updatedRows = await knex(tableName).where({ value: 'test' }).del();
 
-  expect(updatedRows).to.equal(1);
+  expect(updatedRows).toBe(1);
 }
 
 async function hasTableReturnsTrue(knex) {
@@ -38,7 +36,7 @@ async function hasTableReturnsTrue(knex) {
 
   const exists = await knex.schema.hasTable(tableName);
 
-  expect(exists).to.equal(true);
+  expect(exists).toBe(true);
 }
 
 async function createATestTable(knex) {
@@ -57,7 +55,7 @@ async function createATestTable(knex) {
     .from('information_schema.tables')
     .where({ table_name: tableName });
 
-  expect(rows.length).to.equal(1);
+  expect(rows.length).toBe(1);
 }
 
 async function queryForASingleField(knex) {
@@ -73,8 +71,8 @@ async function queryForASingleField(knex) {
 
   const rows = await knex.select('value').from(tableName);
 
-  expect(rows.length).to.equal(1);
-  expect(rows[0].value).to.equal('test');
+  expect(rows.length).toBe(1);
+  expect(rows[0].value).toBe('test');
 }
 
 async function queryForFirst(knex) {
@@ -89,8 +87,8 @@ async function queryForFirst(knex) {
   await knex.table(tableName).insert({ value: 'test' });
 
   const row = await knex.first('value').from(tableName);
-  expect(row).to.be.an('object');
-  expect(row.value).to.equal('test');
+  expect(row).toBeInstanceOf(Object);
+  expect(row.value).toBe('test');
 }
 
 async function queryForFirstUndefined(knex) {
@@ -103,7 +101,7 @@ async function queryForFirstUndefined(knex) {
   });
 
   const row = await knex.first('value').from(tableName);
-  expect(row).to.be.an('undefined');
+  expect(row).toBeUndefined();
 }
 
 async function queryForATimestampField(knex) {
@@ -121,10 +119,10 @@ async function queryForATimestampField(knex) {
 
   const rows = await knex.select('date').from(tableName);
 
-  expect(rows.length).to.equal(1);
+  expect(rows.length).toBe(1);
 
-  expect(Object.prototype.toString.call(rows[0].date)).to.equal('[object Date]');
-  expect(rows[0].date.toISOString()).to.equal(date.toISOString());
+  expect(Object.prototype.toString.call(rows[0].date)).toBe('[object Date]');
+  expect(rows[0].date.toISOString()).toBe(date.toISOString());
 }
 
 async function queryForATruncatedTimestampField(knex) {
@@ -143,10 +141,10 @@ async function queryForATruncatedTimestampField(knex) {
 
   const rows = await knex.select('date').from(tableName);
 
-  expect(rows.length).to.equal(1);
+  expect(rows.length).toBe(1);
 
-  expect(Object.prototype.toString.call(rows[0].date)).to.equal('[object Date]');
-  expect(rows[0].date.toISOString()).to.equal(date.toISOString());
+  expect(Object.prototype.toString.call(rows[0].date)).toBe('[object Date]');
+  expect(rows[0].date.toISOString()).toBe(date.toISOString());
 }
 
 /**
@@ -168,12 +166,12 @@ async function queryForAInfinityTimestampField(knex) {
 
   const rows = await knex.select('date').from(tableName);
 
-  expect(rows.length).to.equal(4);
+  expect(rows.length).toBe(4);
 
-  expect(rows[0].date).to.equal(Infinity);
-  expect(rows[1].date).to.equal(-Infinity);
-  expect(rows[2].date).to.equal(Infinity);
-  expect(rows[3].date).to.equal(-Infinity);
+  expect(rows[0].date).toBe(Infinity);
+  expect(rows[1].date).toBe(-Infinity);
+  expect(rows[2].date).toBe(Infinity);
+  expect(rows[3].date).toBe(-Infinity);
 }
 
 async function queryForASingleJSONField(knex) {
@@ -189,8 +187,8 @@ async function queryForASingleJSONField(knex) {
 
   const rows = await knex.select('value').from(tableName);
 
-  expect(rows.length).to.equal(1);
-  expect(rows[0].value.foo).to.equal('bar');
+  expect(rows.length).toBe(1);
+  expect(rows[0].value.foo).toBe('bar');
 }
 
 async function queryForASingleJSONBField(knex) {
@@ -206,8 +204,8 @@ async function queryForASingleJSONBField(knex) {
 
   const rows = await knex.select('value').from(tableName);
 
-  expect(rows.length).to.equal(1);
-  expect(rows[0].value.foo).to.equal('bar');
+  expect(rows.length).toBe(1);
+  expect(rows[0].value.foo).toBe('bar');
 }
 
 async function queryForAJSONArrayField(knex) {
@@ -224,8 +222,8 @@ async function queryForAJSONArrayField(knex) {
 
   const rows = await knex.select('value').from(tableName);
 
-  expect(rows.length).to.equal(1);
-  expect(rows[0].value[0]).to.equal('bar');
+  expect(rows.length).toBe(1);
+  expect(rows[0].value[0]).toBe('bar');
 }
 
 async function queryTwoTablesWithAnInnerJoin(knex) {
@@ -257,8 +255,8 @@ async function queryTwoTablesWithAnInnerJoin(knex) {
     .from(tableName1)
     .innerJoin(tableName2, `${tableName1}.id`, `${tableName2}.table1_id`);
 
-  expect(rows.length).to.equal(1);
-  expect(rows[0].value2).to.equal('test2');
+  expect(rows.length).toBe(1);
+  expect(rows[0].value2).toBe('test2');
 }
 
 async function returnAnErrorForInvalidInsert(knex) {
@@ -274,7 +272,7 @@ async function returnAnErrorForInvalidInsert(knex) {
     await knex.table(tableName).insert({ non_existing_colun: 'test' }).returning('*');
     throw new Error('should throw');
   } catch (err) {
-    expect(err.message).to.contain('column "non_existing_colun" of');
+    expect(err.message).toContain('column "non_existing_colun" of');
   }
 }
 
@@ -283,7 +281,7 @@ async function returnAnErrorForInvalidSelect(knex) {
     await knex.raw('select sadfasdfasdfasdf;');
     throw new Error('should throw');
   } catch (err) {
-    expect(err.message).to.contain('column "sadfasdfasdfasdf" does not exist');
+    expect(err.message).toContain('column "sadfasdfasdfasdf" does not exist');
   }
 }
 
@@ -301,7 +299,7 @@ async function fetchToRowsUsingWhereIn(knex) {
 
   const rows = await knex.select().from(tableName).whereIn('value', ['test1', 'test2']);
 
-  expect(rows.length).to.equal(2);
+  expect(rows.length).toBe(2);
 }
 
 async function fetchToRowsUsingWhereInWithNumbers(knex) {
@@ -319,7 +317,7 @@ async function fetchToRowsUsingWhereInWithNumbers(knex) {
 
   const rows = await knex.select().from(tableName).whereIn('value', [1, 2]);
 
-  expect(rows.length).to.equal(2);
+  expect(rows.length).toBe(2);
 }
 
 async function insertRowAndFetch(knex) {
@@ -335,7 +333,7 @@ async function insertRowAndFetch(knex) {
 
   const rows = await knex.select().from(tableName);
 
-  expect(rows.length).to.equal(1);
+  expect(rows.length).toBe(1);
 }
 
 async function insertRowWithJsonbAndReturnAnArrayOfRows(knex) {
@@ -350,8 +348,8 @@ async function insertRowWithJsonbAndReturnAnArrayOfRows(knex) {
   const payload = { name: 'moi', location: 'sydney' };
   const rows = await knex.table(tableName).insert({ payload }).returning('*');
 
-  expect(rows.length).to.equal(1);
-  expect(rows[0]).to.deep.equal({ id: 1, payload });
+  expect(rows.length).toBe(1);
+  expect(rows[0]).toEqual({ id: 1, payload });
 }
 
 async function insertRowAndReturnAnArrayOfRows(knex) {
@@ -365,8 +363,8 @@ async function insertRowAndReturnAnArrayOfRows(knex) {
 
   const rows = await knex.table(tableName).insert({ value: 'test' }).returning('id');
 
-  expect(rows.length).to.equal(1);
-  expect(rows[0]).to.deep.equal({ id: 1 });
+  expect(rows.length).toBe(1);
+  expect(rows[0]).toEqual({ id: 1 });
 }
 
 async function insertRowWithTimestampAsNull(knex) {
@@ -380,7 +378,7 @@ async function insertRowWithTimestampAsNull(knex) {
 
   const response = await knex.table(tableName).insert({ value: null }).returning('*');
 
-  expect(response.length).to.equal(1);
+  expect(response.length).toBe(1);
 }
 
 async function insertTwoRowsInTransaction(knex) {
@@ -410,7 +408,7 @@ async function insertTwoRowsInTransaction(knex) {
 
   const rows = await knex.select().from(tableName);
 
-  expect(rows.length).to.equal(2);
+  expect(rows.length).toBe(2);
 }
 
 async function updateARow(knex) {
@@ -428,9 +426,9 @@ async function updateARow(knex) {
 
   const rows = await knex.select('value').from(tableName);
 
-  expect(updatedRows).to.equal(1);
-  expect(rows.length).to.equal(1);
-  expect(rows[0].value).to.equal('update');
+  expect(updatedRows).toBe(1);
+  expect(rows.length).toBe(1);
+  expect(rows[0].value).toBe('update');
 }
 
 async function updateARowReturning(knex) {
@@ -449,8 +447,8 @@ async function updateARowReturning(knex) {
     .where({ value: 'test' })
     .returning('*');
 
-  expect(rows.length).to.equal(1);
-  expect(rows[0].value).to.equal('update');
+  expect(rows.length).toBe(1);
+  expect(rows[0].value).toBe('update');
 }
 
 async function updateRowWithJsonbReturning(knex) {
@@ -468,9 +466,9 @@ async function updateRowWithJsonbReturning(knex) {
     .update({ value: { test: 'update' } })
     .returning('*');
 
-  expect(rows.length).to.equal(1);
-  expect(typeof rows[0].value).to.equal('object');
-  expect(rows[0].value).to.deep.equal({ test: 'update' });
+  expect(rows.length).toBe(1);
+  expect(typeof rows[0].value).toBe('object');
+  expect(rows[0].value).toEqual({ test: 'update' });
 }
 
 async function returnEmptyArrayForQueryOnEmptyTable(knex) {
@@ -483,7 +481,7 @@ async function returnEmptyArrayForQueryOnEmptyTable(knex) {
   });
   const rows = await knex.select('value').from(tableName).orderBy('id', 'asc');
 
-  expect(rows.length).to.equal(0);
+  expect(rows.length).toBe(0);
 }
 
 async function insertTextArray(knex) {
@@ -499,7 +497,7 @@ async function insertTextArray(knex) {
 
   const [row] = await knex.select().from(tableName);
 
-  expect(row.value).to.deep.equal(['test']);
+  expect(row.value).toEqual(['test']);
 }
 
 module.exports = {
