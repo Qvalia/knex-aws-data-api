@@ -1,4 +1,4 @@
-const { mysql } = require('./knexClient');
+const { mysql } = require('./knex-client');
 const commonTests = require('./common-tests');
 const { migrateToLatest } = require('./migrations-test');
 

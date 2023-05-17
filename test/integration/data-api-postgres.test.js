@@ -1,4 +1,4 @@
-const { postgres } = require('./knexClient');
+const { postgres } = require('./knex-client');
 const commonTests = require('./common-tests');
 const { migrateToLatest } = require('./migrations-test');
 

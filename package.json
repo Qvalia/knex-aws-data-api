@@ -37,6 +37,7 @@
     "knex": "^2.4.2"
   },
   "devDependencies": {
+    "rewire": "^6.0.0",
     "@aws-sdk/client-rds-data": "^3.332.0",
     "dotenv": "16.0.3",
     "eslint": "^8.39.0",
@@ -54,6 +55,5 @@
     "prettier": "^2.8.7"
   },
   "dependencies": {
-    "rewire": "^6.0.0"
   }
 }
