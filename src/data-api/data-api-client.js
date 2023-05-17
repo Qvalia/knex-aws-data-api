@@ -1,3 +1,4 @@
+/* eslint-disable func-names */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable spaced-comment */
 /* eslint-disable no-await-in-loop */
@@ -57,11 +58,11 @@ function escapeId(val, forbidQualified) {
     }
 
     return sql;
-  } else if (forbidQualified) {
-    return '`' + String(val).replace(ID_GLOBAL_REGEXP, '``') + '`';
-  } else {
-    return '`' + String(val).replace(ID_GLOBAL_REGEXP, '``').replace(QUAL_GLOBAL_REGEXP, '`.`') + '`';
+  } if (forbidQualified) {
+    return `\`${  String(val).replace(ID_GLOBAL_REGEXP, '``')  }\``;
   }
+    return `\`${  String(val).replace(ID_GLOBAL_REGEXP, '``').replace(QUAL_GLOBAL_REGEXP, '`.`')  }\``;
+
 };
 
 // Parse SQL statement from provided arguments
@@ -129,14 +130,6 @@ const parseFormatOptions = (config, args) =>
       ? error("'formatOptions' must be an object.")
       : config.formatOptions;
 
-// Prepare method params w/ supplied inputs if an object is passed
-const prepareParams = ({ secretArn, resourceArn }, args) => ({
-    secretArn,
-      resourceArn,
-    ...(typeof args[0] === 'object'
-      ? omit(args[0], ['hydrateColumnNames', 'parameters'])
-      : {}) // merge any inputs
-  });
 
 // Utility function for removing certain keys from an object
 const omit = (obj, values) =>
@@ -145,6 +138,15 @@ const omit = (obj, values) =>
       values.includes(x) ? acc : Object.assign(acc, { [x]: obj[x] }),
     {}
   );
+
+// Prepare method params w/ supplied inputs if an object is passed
+const prepareParams = ({ secretArn, resourceArn }, args) => ({
+    secretArn,
+      resourceArn,
+    ...(typeof args[0] === 'object'
+      ? omit(args[0], ['hydrateColumnNames', 'parameters'])
+      : {}) // merge any inputs
+  });
 
 // Utility function for picking certain keys from an object
 const pick = (obj, values) =>
@@ -156,6 +158,96 @@ const pick = (obj, values) =>
 
 // Utility function for flattening arrays
 const flatten = arr => arr.reduce((acc, x) => acc.concat(x), []);
+
+// Formats the (UTC) date to the AWS accepted YYYY-MM-DD HH:MM:SS[.FFF] format
+// See https://docs.aws.amazon.com/rdsdataservice/latest/APIReference/API_SqlParameter.html
+const formatToTimeStamp = (date, treatAsLocalDate) => {
+  const pad = (val, num = 2) => '0'.repeat(num - String(val).length) + val;
+
+  const year = treatAsLocalDate ? date.getFullYear() : date.getUTCFullYear();
+  const month = (treatAsLocalDate ? date.getMonth() : date.getUTCMonth()) + 1; // Convert to human month
+  const day = treatAsLocalDate ? date.getDate() : date.getUTCDate();
+
+  const hours = treatAsLocalDate ? date.getHours() : date.getUTCHours();
+  const minutes = treatAsLocalDate ? date.getMinutes() : date.getUTCMinutes();
+  const seconds = treatAsLocalDate ? date.getSeconds() : date.getUTCSeconds();
+  const ms = treatAsLocalDate
+    ? date.getMilliseconds()
+    : date.getUTCMilliseconds();
+
+  const fraction = ms <= 0 ? '' : `.${pad(ms, 3)}`;
+
+  return `${year}-${pad(month)}-${pad(day)} ${pad(hours)}:${pad(minutes)}:${pad(
+    seconds
+  )}${fraction}`;
+};
+
+// Converts the string value to a Date object.
+// If standard TIMESTAMP format (YYYY-MM-DD[ HH:MM:SS[.FFF]]) without TZ + treatAsLocalDate=false then assume UTC Date
+// In all other cases convert value to datetime as-is (also values with TZ info)
+const formatFromTimeStamp = (value, treatAsLocalDate) =>
+  !treatAsLocalDate &&
+    /^\d{4}-\d{2}-\d{2}(\s\d{2}:\d{2}:\d{2}(\.\d{3})?)?$/.test(value)
+    ? new Date(`${value}Z`)
+    : new Date(value);
+
+// Converts object params into name/value format
+const splitParams = p =>
+  Object.keys(p).reduce((arr, x) => arr.concat({ name: x, value: p[x] }), []);
+
+const isDate = val => val instanceof Date;
+
+// Gets the value type and returns the correct value field name
+// TODO: Support more types as the are released
+const getType = val =>
+  typeof val === 'string'
+    ? 'stringValue'
+    : typeof val === 'boolean'
+      ? 'booleanValue'
+      : typeof val === 'number' && parseInt(val, 10) === val
+        ? 'longValue'
+        : typeof val === 'number' && parseFloat(val) === val
+          ? 'doubleValue'
+          : val === null
+            ? 'isNull'
+            : isDate(val)
+              ? 'stringValue'
+              : Buffer.isBuffer(val)
+                ? 'blobValue'
+                : // : Array.isArray(val) ? 'arrayValue' This doesn't work yet
+                // TODO: there is a 'structValue' now for postgres
+                typeof val === 'object' &&
+                  Object.keys(val).length === 1 &&
+                  supportedTypes.includes(Object.keys(val)[0])
+                  ? null
+                  : undefined;
+
+// Hint to specify the underlying object type for data type mapping
+const getTypeHint = val => (isDate(val) ? 'TIMESTAMP' : undefined);
+
+// Creates a standard Data API parameter using the supplied inputs
+const formatType = (name, value, type, typeHint, formatOptions) => Object.assign(
+  typeHint != null ? { name, typeHint } : { name },
+  type === null
+    ? { value }
+    : {
+      value: {
+        [type || error(`'${name}' is an invalid type`)]:
+          type === 'isNull'
+            ? true
+            : isDate(value)
+              ? formatToTimeStamp(
+                value,
+                formatOptions && formatOptions.treatAsLocalDate
+              )
+              : value
+      }
+    }
+); // end formatType
+
+// Converts parameter to the name/value format
+const formatParam = (n, v, formatOptions) =>
+  formatType(n, v, getType(v), getTypeHint(v), formatOptions);
 
 // Normize parameters so that they are all in standard format
 const normalizeParams = params =>
@@ -222,14 +314,6 @@ const processParams = (
     escapedSql: sql
   });
 
-// Converts parameter to the name/value format
-const formatParam = (n, v, formatOptions) =>
-  formatType(n, v, getType(v), getTypeHint(v), formatOptions);
-
-// Converts object params into name/value format
-const splitParams = p =>
-  Object.keys(p).reduce((arr, x) => arr.concat({ name: x, value: p[x] }), []);
-
 // Get all the sql parameters and assign them types
 const getSqlParams = sql =>
   // TODO: probably need to remove comments from the sql
@@ -251,122 +335,28 @@ const getSqlParams = sql =>
       }), {}) // end reduce
 ;
 
-const isDate = val => val instanceof Date;
+// Format record value based on its value, the database column's typeName and the formatting options
+const formatRecordValue = (value, typeName, formatOptions) =>
+  formatOptions &&
+    formatOptions.deserializeDate &&
+    ['DATE', 'DATETIME', 'TIMESTAMP', 'TIMESTAMP WITH TIME ZONE'].includes(
+      typeName
+    )
+    ? formatFromTimeStamp(
+      value,
+      (formatOptions && formatOptions.treatAsLocalDate) ||
+      typeName === 'TIMESTAMP WITH TIME ZONE'
+    )
+    : value;
 
-// Gets the value type and returns the correct value field name
-// TODO: Support more types as the are released
-const getType = val =>
-  typeof val === 'string'
-    ? 'stringValue'
-    : typeof val === 'boolean'
-      ? 'booleanValue'
-      : typeof val === 'number' && parseInt(val) === val
-        ? 'longValue'
-        : typeof val === 'number' && parseFloat(val) === val
-          ? 'doubleValue'
-          : val === null
-            ? 'isNull'
-            : isDate(val)
-              ? 'stringValue'
-              : Buffer.isBuffer(val)
-                ? 'blobValue'
-                : // : Array.isArray(val) ? 'arrayValue' This doesn't work yet
-                // TODO: there is a 'structValue' now for postgres
-                typeof val === 'object' &&
-                  Object.keys(val).length === 1 &&
-                  supportedTypes.includes(Object.keys(val)[0])
-                  ? null
-                  : undefined;
+// Format updateResults and extract insertIds
+const formatUpdateResults = res =>
+  res.map(x => x.generatedFields && x.generatedFields.length > 0
+    ? { insertId: x.generatedFields[0].longValue }
+    : {});
 
-// Hint to specify the underlying object type for data type mapping
-const getTypeHint = val => (isDate(val) ? 'TIMESTAMP' : undefined);
-
-// Creates a standard Data API parameter using the supplied inputs
-const formatType = (name, value, type, typeHint, formatOptions) => Object.assign(
-    typeHint != null ? { name, typeHint } : { name },
-    type === null
-      ? { value }
-      : {
-        value: {
-          [type || error(`'${name}' is an invalid type`)]:
-            type === 'isNull'
-              ? true
-              : isDate(value)
-                ? formatToTimeStamp(
-                  value,
-                  formatOptions && formatOptions.treatAsLocalDate
-                )
-                : value
-        }
-      }
-  ); // end formatType
-
-// Formats the (UTC) date to the AWS accepted YYYY-MM-DD HH:MM:SS[.FFF] format
-// See https://docs.aws.amazon.com/rdsdataservice/latest/APIReference/API_SqlParameter.html
-const formatToTimeStamp = (date, treatAsLocalDate) => {
-  const pad = (val, num = 2) => '0'.repeat(num - String(val).length) + val;
-
-  const year = treatAsLocalDate ? date.getFullYear() : date.getUTCFullYear();
-  const month = (treatAsLocalDate ? date.getMonth() : date.getUTCMonth()) + 1; // Convert to human month
-  const day = treatAsLocalDate ? date.getDate() : date.getUTCDate();
-
-  const hours = treatAsLocalDate ? date.getHours() : date.getUTCHours();
-  const minutes = treatAsLocalDate ? date.getMinutes() : date.getUTCMinutes();
-  const seconds = treatAsLocalDate ? date.getSeconds() : date.getUTCSeconds();
-  const ms = treatAsLocalDate
-    ? date.getMilliseconds()
-    : date.getUTCMilliseconds();
-
-  const fraction = ms <= 0 ? '' : `.${pad(ms, 3)}`;
-
-  return `${year}-${pad(month)}-${pad(day)} ${pad(hours)}:${pad(minutes)}:${pad(
-    seconds
-  )}${fraction}`;
-};
-
-// Converts the string value to a Date object.
-// If standard TIMESTAMP format (YYYY-MM-DD[ HH:MM:SS[.FFF]]) without TZ + treatAsLocalDate=false then assume UTC Date
-// In all other cases convert value to datetime as-is (also values with TZ info)
-const formatFromTimeStamp = (value, treatAsLocalDate) =>
-  !treatAsLocalDate &&
-    /^\d{4}-\d{2}-\d{2}(\s\d{2}:\d{2}:\d{2}(\.\d{3})?)?$/.test(value)
-    ? new Date(`${value  }Z`)
-    : new Date(value);
-
-// Formats the results of a query response
-const formatResults = (
-  {
-    // destructure results
-    columnMetadata, // ONLY when hydrate or includeResultMetadata is true
-    numberOfRecordsUpdated, // ONLY for executeStatement method
-    records, // ONLY for executeStatement method
-    generatedFields, // ONLY for INSERTS
-    updateResults // ONLY on batchExecuteStatement
-  },
-  hydrate,
-  includeMeta,
-  formatOptions
-) =>
-  Object.assign(
-    includeMeta ? { columnMetadata } : {},
-    numberOfRecordsUpdated !== undefined && !records
-      ? { numberOfRecordsUpdated }
-      : {},
-    records
-      ? {
-        records: formatRecords(
-          records,
-          columnMetadata,
-          hydrate,
-          formatOptions
-        )
-      }
-      : {},
-    updateResults ? { updateResults: formatUpdateResults(updateResults) } : {},
-    generatedFields && generatedFields.length > 0
-      ? { insertId: generatedFields[0].longValue }
-      : {}
-  );
+// Merge configuration data with supplied arguments
+const mergeConfig = (initialConfig, args) => Object.assign(initialConfig, args);
 
 // Processes records and either extracts Typed Values into an array, or
 // object with named column labels
@@ -375,12 +365,12 @@ const formatRecords = (recs, columns, hydrate, formatOptions) => {
   const fmap =
     recs && recs[0]
       ? recs[0].map((x, i) =>
-         ({
+      ({
 
-          ...(columns
-            ? { label: columns[i].label, typeName: columns[i].typeName }
-            : {})
-        }) // add column label and typeName
+        ...(columns
+          ? { label: columns[i].label, typeName: columns[i].typeName }
+          : {})
+      }) // add column label and typeName
       )
       : {};
 
@@ -388,7 +378,7 @@ const formatRecords = (recs, columns, hydrate, formatOptions) => {
   return recs
     ? recs.map(rec =>
       // Reduce each field in the record (row)
-       rec.reduce(
+      rec.reduce(
         (acc, field, i) => {
           // If the field is null, always return null
           if (field.isNull === true) {
@@ -432,28 +422,40 @@ const formatRecords = (recs, columns, hydrate, formatOptions) => {
     : []; // empty record set returns an array
 }; // end formatRecords
 
-// Format record value based on its value, the database column's typeName and the formatting options
-const formatRecordValue = (value, typeName, formatOptions) =>
-  formatOptions &&
-    formatOptions.deserializeDate &&
-    ['DATE', 'DATETIME', 'TIMESTAMP', 'TIMESTAMP WITH TIME ZONE'].includes(
-      typeName
-    )
-    ? formatFromTimeStamp(
-      value,
-      (formatOptions && formatOptions.treatAsLocalDate) ||
-      typeName === 'TIMESTAMP WITH TIME ZONE'
-    )
-    : value;
-
-// Format updateResults and extract insertIds
-const formatUpdateResults = res =>
-  res.map(x => x.generatedFields && x.generatedFields.length > 0
-      ? { insertId: x.generatedFields[0].longValue }
-      : {});
-
-// Merge configuration data with supplied arguments
-const mergeConfig = (initialConfig, args) => Object.assign(initialConfig, args);
+// Formats the results of a query response
+const formatResults = (
+  {
+    // destructure results
+    columnMetadata, // ONLY when hydrate or includeResultMetadata is true
+    numberOfRecordsUpdated, // ONLY for executeStatement method
+    records, // ONLY for executeStatement method
+    generatedFields, // ONLY for INSERTS
+    updateResults // ONLY on batchExecuteStatement
+  },
+  hydrate,
+  includeMeta,
+  formatOptions
+) =>
+  Object.assign(
+    includeMeta ? { columnMetadata } : {},
+    numberOfRecordsUpdated !== undefined && !records
+      ? { numberOfRecordsUpdated }
+      : {},
+    records
+      ? {
+        records: formatRecords(
+          records,
+          columnMetadata,
+          hydrate,
+          formatOptions
+        )
+      }
+      : {},
+    updateResults ? { updateResults: formatUpdateResults(updateResults) } : {},
+    generatedFields && generatedFields.length > 0
+      ? { insertId: generatedFields[0].longValue }
+      : {}
+  );
 
 /********************************************************************/
 /**  QUERY MANAGEMENT                                              **/
@@ -542,40 +544,6 @@ const query = async function (config, ..._args) {
 /**  TRANSACTION MANAGEMENT                                        **/
 /********************************************************************/
 
-// Init a transaction object and return methods
-const transaction = (config, _args) => {
-  const args = typeof _args === 'object' ? [_args] : [{}];
-  const queries = []; // keep track of queries
-  let rollback = () => { }; // default rollback event
-
-  const txConfig = Object.assign(prepareParams(config, args), {
-    database: parseDatabase(config, args), // add database
-    hydrateColumnNames: parseHydrate(config, args), // add hydrate
-    formatOptions: parseFormatOptions(config, args), // add formatOptions
-    RDS: config.RDS // reference the RDSDataService instance
-  });
-
-  return {
-    query(...args) {
-      if (typeof args[0] === 'function') {
-        queries.push(args[0]);
-      } else {
-        queries.push(() => [...args]);
-      }
-      return this;
-    },
-    rollback(fn) {
-      if (typeof fn === 'function') {
-        rollback = fn;
-      }
-      return this;
-    },
-    async commit() {
-      return commit(txConfig, queries, rollback);
-    }
-  };
-};
-
 // Commit transaction by running queries
 const commit = async (config, queries, rollback) => {
   const results = []; // keep track of results
@@ -613,6 +581,40 @@ const commit = async (config, queries, rollback) => {
 
   // Return the results
   return results;
+};
+
+// Init a transaction object and return methods
+const transaction = (config, _args) => {
+  const args = typeof _args === 'object' ? [_args] : [{}];
+  const queries = []; // keep track of queries
+  let rollback = () => { }; // default rollback event
+
+  const txConfig = Object.assign(prepareParams(config, args), {
+    database: parseDatabase(config, args), // add database
+    hydrateColumnNames: parseHydrate(config, args), // add hydrate
+    formatOptions: parseFormatOptions(config, args), // add formatOptions
+    RDS: config.RDS // reference the RDSDataService instance
+  });
+
+  return {
+    query(...argslist) {
+      if (typeof argslist[0] === 'function') {
+        queries.push(argslist[0]);
+      } else {
+        queries.push(() => [...argslist]);
+      }
+      return this;
+    },
+    rollback(fn) {
+      if (typeof fn === 'function') {
+        rollback = fn;
+      }
+      return this;
+    },
+    async commit() {
+      return commit(txConfig, queries, rollback);
+    }
+  };
 };
 
 /********************************************************************/

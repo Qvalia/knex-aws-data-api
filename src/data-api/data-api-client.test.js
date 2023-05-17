@@ -2,12 +2,7 @@
 /* eslint-disable no-underscore-dangle */
 const rewire = require('rewire');
 const {
-  RDSDataClient,
-  ExecuteStatementCommand,
-  BatchExecuteStatementCommand,
-  BeginTransactionCommand,
-  CommitTransactionCommand,
-  RollbackTransactionCommand
+  ExecuteStatementCommand
 } = require('@aws-sdk/client-rds-data');
 
 const dataApiClient = rewire('./data-api-client');
@@ -148,7 +143,7 @@ describe('query configuration parsing', () => {
 
     test('no database provided (return undefined)', async () => {
       const result = parseDatabase({}, [{}]);
-      expect(result).toBe.undefined;
+      expect(result).toBeUndefined();
     });
 
   }); // end parseDatabase
