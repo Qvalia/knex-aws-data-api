@@ -27,7 +27,11 @@
     "mysql",
     "postgres"
   ],
-  "author": "Qvalia",
+  "author": {
+    "name": "Qvalia AB, Sweden",
+    "email": "info@qvalia.com",
+    "url": "https://qvalia.com/"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Qvalia/knex-aws-data-api/issues"
