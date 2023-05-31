@@ -32,7 +32,7 @@ module.exports = class DataAPITransaction extends Transaction {
       } catch (err) {
         this._rejecter(err);
       }
-      
+
       return;
     }
 
@@ -50,7 +50,7 @@ module.exports = class DataAPITransaction extends Transaction {
             connection.isTransaction = false;
             connection.rdsTransactionId = null;
           });
-  
+
           resolve();
         } catch (rollBackErr) {
           reject(rollBackErr);
@@ -68,10 +68,10 @@ module.exports = class DataAPITransaction extends Transaction {
             this._resolver();
             return;
           }
-          err = new Error(`Transaction rejected with non-error: ${err}`);
+          err = new Error(`Transaction rejected with non-error`);
         }
         this._rejecter(err);
-      });      
+      });
     }
 
     return Promise.resolve();

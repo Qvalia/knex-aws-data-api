@@ -10,7 +10,7 @@ module.exports = {
     database: process.env.DB_NAME,
     region: process.env.DB_REGION,
     options: {
-      endpoint: `http://127.0.0.1:${  process.env.DATA_API_PORT}`
+      endpoint: `http:/knexdataapi:${  process.env.DATA_API_PORT}`
     }
   }
 };

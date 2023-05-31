@@ -19,8 +19,8 @@ function applyRecord(columnMetadata, record) {
           parsedColumns[column.name] = record[column.name].stringValues;
           break;
         default:
-          // Skip
           break;
+          // Skip
       }
     }
   });
