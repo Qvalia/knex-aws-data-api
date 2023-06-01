@@ -85,7 +85,7 @@ const parseParams = args =>
           : args[0].parameters
             ? error("'parameters' must be an object or array")
             : args[1]
-              ? error('Parameters must be an object or array')
+              ? error("'parameters' must be an object or array")
               : [];
 
 // Parse the supplied database, or default to config
