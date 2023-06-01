@@ -363,7 +363,6 @@ const formatRecords = (recs, columns, hydrate, formatOptions) => {
     recs && recs[0]
       ? recs[0].map((x, i) =>
       ({
-
         ...(columns
           ? { label: columns[i].label, typeName: columns[i].typeName }
           : {})
@@ -384,7 +383,8 @@ const formatRecords = (recs, columns, hydrate, formatOptions) => {
               : acc.concat(null);
 
             // If the field is mapped, return the mapped field
-          } if (fmap[i] && fmap[i].field) {
+          }
+          if (fmap[i] && fmap[i].field) {
             const value = formatRecordValue(
               field[fmap[i].field],
               fmap[i].typeName,
