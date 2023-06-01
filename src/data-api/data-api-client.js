@@ -1,6 +1,5 @@
 /* eslint-disable func-names */
 /* eslint-disable no-nested-ternary */
-/* eslint-disable spaced-comment */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-param-reassign */
 
@@ -37,9 +36,9 @@ const supportedTypes = [
   'structValue'
 ];
 
-/********************************************************************/
-/**  PRIVATE METHODS                                               **/
-/********************************************************************/
+/** ***************************************************************** */
+/**  PRIVATE METHODS                                               * */
+/** ***************************************************************** */
 
 // Simple error function
 const error = (...err) => {
@@ -59,9 +58,9 @@ function escapeId(val, forbidQualified) {
 
     return sql;
   } if (forbidQualified) {
-    return `\`${  String(val).replace(ID_GLOBAL_REGEXP, '``')  }\``;
+    return `\`${String(val).replace(ID_GLOBAL_REGEXP, '``')}\``;
   }
-    return `\`${  String(val).replace(ID_GLOBAL_REGEXP, '``').replace(QUAL_GLOBAL_REGEXP, '`.`')  }\``;
+  return `\`${String(val).replace(ID_GLOBAL_REGEXP, '``').replace(QUAL_GLOBAL_REGEXP, '`.`')}\``;
 
 };
 
@@ -141,12 +140,10 @@ const omit = (obj, values) =>
 
 // Prepare method params w/ supplied inputs if an object is passed
 const prepareParams = ({ secretArn, resourceArn }, args) => ({
-    secretArn,
-      resourceArn,
-    ...(typeof args[0] === 'object'
-      ? omit(args[0], ['hydrateColumnNames', 'parameters'])
-      : {}) // merge any inputs
-  });
+  secretArn,
+  resourceArn,
+  ...(typeof args[0] === 'object' ? omit(args[0], ['hydrateColumnNames', 'parameters']) : {}) // merge any inputs
+});
 
 // Utility function for picking certain keys from an object
 const pick = (obj, values) =>
@@ -276,64 +273,64 @@ const processParams = (
   formatOptions,
   row = 0
 ) => ({
-    processedParams: params.reduce((acc, p) => {
-      if (Array.isArray(p)) {
-        const result = processParams(
-          engine,
-          sql,
-          sqlParams,
-          p,
-          formatOptions,
-          row
-        );
-        if (row === 0) {
-          sql = result.escapedSql;
-          row++;
+  processedParams: params.reduce((acc, p) => {
+    if (Array.isArray(p)) {
+      const result = processParams(
+        engine,
+        sql,
+        sqlParams,
+        p,
+        formatOptions,
+        row
+      );
+      if (row === 0) {
+        sql = result.escapedSql;
+        row++;
+      }
+      return acc.concat([result.processedParams]);
+    } if (sqlParams[p.name]) {
+      if (sqlParams[p.name].type === 'n_ph') {
+        if (p.cast) {
+          const regex = new RegExp(`:${p.name}\\b`, 'g');
+          sql = sql.replace(
+            regex,
+            engine === 'pg'
+              ? `:${p.name}::${p.cast}`
+              : `CAST(:${p.name} AS ${p.cast})`
+          );
         }
-        return acc.concat([result.processedParams]);
-      } if (sqlParams[p.name]) {
-        if (sqlParams[p.name].type === 'n_ph') {
-          if (p.cast) {
-            const regex = new RegExp(`:${  p.name  }\\b`, 'g');
-            sql = sql.replace(
-              regex,
-              engine === 'pg'
-                ? `:${p.name}::${p.cast}`
-                : `CAST(:${p.name} AS ${p.cast})`
-            );
-          }
-          acc.push(formatParam(p.name, p.value, formatOptions));
-        } else if (row === 0) {
-          const regex = new RegExp(`::${  p.name  }\\b`, 'g');
-          sql = sql.replace(regex, escapeId(p.value));
-        }
-        return acc;
+        acc.push(formatParam(p.name, p.value, formatOptions));
+      } else if (row === 0) {
+        const regex = new RegExp(`::${p.name}\\b`, 'g');
+        sql = sql.replace(regex, escapeId(p.value));
       }
       return acc;
-    }, []),
-    escapedSql: sql
-  });
+    }
+    return acc;
+  }, []),
+  escapedSql: sql
+});
 
 // Get all the sql parameters and assign them types
 const getSqlParams = sql =>
   // TODO: probably need to remove comments from the sql
   // TODO: placeholders?
   // sql.match(/\:{1,2}\w+|\?+/g).map((p,i) => {
-   (sql.match(/:{1,2}\w+/g) || [])
+  (sql.match(/:{1,2}\w+/g) || [])
     .map(p =>
       // TODO: future support for placeholder parsing?
       // return p === '??' ? { type: 'id' } // identifier
       //   : p === '?' ? { type: 'ph', label: '__d'+i  } // placeholder
-       p.startsWith('::')
+      p.startsWith('::')
         ? { type: 'n_id', label: p.substr(2) } // named id
         : { type: 'n_ph', label: p.substr(1) } // named placeholder
     )
     .reduce((acc, x) => Object.assign(acc, {
-        [x.label]: {
-          type: x.type
-        }
-      }), {}) // end reduce
-;
+      [x.label]: {
+        type: x.type
+      }
+    }), {}) // end reduce
+  ;
 
 // Format record value based on its value, the database column's typeName and the formatting options
 const formatRecordValue = (value, typeName, formatOptions) =>
@@ -457,9 +454,9 @@ const formatResults = (
       : {}
   );
 
-/********************************************************************/
-/**  QUERY MANAGEMENT                                              **/
-/********************************************************************/
+/** ***************************************************************** */
+/**  QUERY MANAGEMENT                                              * */
+/** ***************************************************************** */
 
 // Query function (use standard form for `this` context)
 const query = async function (config, ..._args) {
@@ -540,9 +537,9 @@ const query = async function (config, ..._args) {
   }
 }; // end query
 
-/********************************************************************/
-/**  TRANSACTION MANAGEMENT                                        **/
-/********************************************************************/
+/** ***************************************************************** */
+/**  TRANSACTION MANAGEMENT                                        * */
+/** ***************************************************************** */
 
 // Commit transaction by running queries
 const commit = async (config, queries, rollback) => {
@@ -617,9 +614,9 @@ const transaction = (config, _args) => {
   };
 };
 
-/********************************************************************/
-/**  INSTANTIATION                                                 **/
-/********************************************************************/
+/** ***************************************************************** */
+/**  INSTANTIATION                                                 * */
+/** ***************************************************************** */
 
 // Export main function
 /**
