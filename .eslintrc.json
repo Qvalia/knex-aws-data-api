@@ -1,0 +1,52 @@
+{
+  "env": {
+    "es6": true,
+    "node": true,
+    "commonjs": true,
+    "jest": true
+  },
+  "extends": [
+    "airbnb-base",
+    "prettier"
+  ],
+  "plugins": [
+    "prettier"
+  ],
+  "parserOptions": {
+    "ecmaVersion": "latest"
+  },
+  "rules": {
+    "semi": [
+      "error",
+      "always",
+      {
+        "omitLastInOneLineBlock": false
+      }
+    ],
+    "no-unused-vars": "warn",
+    "no-plusplus": "off",
+    "comma-dangle": [
+      "error",
+      "never"
+    ],
+    "max-len": [
+      "error",
+      {
+        "code": 180
+      }
+    ],
+    "no-restricted-syntax": [
+      "error",
+      "ForInStatement",
+      "LabeledStatement",
+      "WithStatement"
+    ],
+    "no-console": "off",
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        "devDependencies": true
+      }
+    ]
+  }
+}

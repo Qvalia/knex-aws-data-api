@@ -1,0 +1,42 @@
+name: Knex Data API CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  # Setting an environment variable with the value of a configuration variable
+  DB_RESOURCE_ARN: ${{ vars.DB_RESOURCE_ARN }}
+  DB_NAME: ${{ vars.DB_NAME }}
+  DB_REGION: ${{ vars.DB_REGION }}
+  DB_SECRET_ARN: ${{ vars.DB_SECRET_ARN }}
+  DATA_API_PORT: ${{ vars.DATA_API_PORT }}
+  AWS_SDK_LOAD_CONFIG: 1
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: CI
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Build the stack
+        run: docker-compose up -d
+      - run: npm ci
+      - name: Build
+        run: npm run test
+      - name: Lint
+        run: npm run lint
+      - name: "Wait for docker to finish building"
+        run: sleep 30
+      - name: Integration Tests
+        run: npm run test-integration

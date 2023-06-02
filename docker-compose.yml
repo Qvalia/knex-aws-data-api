@@ -1,0 +1,43 @@
+version: "3.1"
+
+services:
+  knex-da-local-data-api:
+    image: koxudaxi/local-data-api
+    restart: always
+    container_name: knexdataapi
+    environment:
+      ENGINE: PostgreSQLJDBC
+      POSTGRES_HOST: knex-da-postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secretpassword
+      RESOURCE_ARN: ${DB_RESOURCE_ARN}
+      SECRET_ARN: ${DB_SECRET_ARN}
+      MYSQL_HOST: knex-da-mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: root
+      MYSQL_PASSWORD: secretpassword
+    ports:
+      - "${DATA_API_PORT}:80"
+  knex-da-postgres:
+    image: postgres:10.7-alpine
+    restart: always
+    volumes:
+      - ./db-data/var/lib/postgresql:/var/lib/postgresql
+    environment:
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "8543:5432"
+  # Mysql container commented out for now but to be used for future integrations
+  # knex-da-mysql:
+  #   image: mysql:8
+  #   command: --default-authentication-plugin=mysql_native_password
+  #   restart: always
+  #   platform: linux/amd64
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: secretpassword
+  #     MYSQL_DATABASE: ${DB_NAME}
+  #   ports:
+  #       - "8330:3306"
+
