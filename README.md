@@ -12,7 +12,7 @@ The problem this module tries to fix is the maintainability of data-api with AWS
 
 ## Installation
 
-Depends on knex npm mpdule. Please check `peerDependencies` of package.json to get the supported knex version. Plugin depends on AWS SDK as a devDependency.
+Depends on knex npm mpdule. Please check `peerDependencies` of package.json to get the supported knex version. Plugin depends on AWS SDK v3 as a devDependency.
 
 ```bash
 npm install @qvalia/knex-aws-data-api

@@ -1,6 +1,6 @@
 {
   "name": "@qvalia/knex-aws-data-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Knex plugin that uses AWS Data API internally to execute SQL queries. Postgres & Mysql",
   "main": "index.js",
   "files": [
