@@ -1,7 +1,7 @@
 # Knex AWS Data API - @qvalia/knex-aws-data-api
 
-[![npm](https://img.shields.io/npm/v/@qvalia/knex-aws-data-api.svg)](https://www.npmjs.com/package/@qvalia/knex-aws-data-api)
-[![npm](https://img.shields.io/npm/l/@qvalia/knex-aws-data-api.svg)](https://www.npmjs.com/package/@qvalia/knex-aws-data-api)
+[![npm](https://img.shields.io/npm/v/@qvalia/knex-aws-data-api)](https://www.npmjs.com/package/@qvalia/knex-aws-data-api)
+[![npm](https://img.shields.io/npm/l/@qvalia/knex-aws-data-api)](https://img.shields.io/npm/l/@qvalia/knex-aws-data-api))](https://www.npmjs.com/package/@qvalia/knex-aws-data-api)
 
 This module is a Nodejs [knex](https://github.com/knex/knex) library plugin that connects to Mysql or PostgreSQL over AWS Data-API. Uses most recent version of AWS SDK for Data-API and kept updated. Backed by [Qvalia](https://qvalia.com/) organisation.
 
