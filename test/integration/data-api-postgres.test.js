@@ -4,12 +4,8 @@ const { migrateToLatest } = require('./migrations-test');
 
 describe('Connection Check', () => {
   it('Connection', async () => {
-    try {
-      const test = await postgres.raw('select 1+1 as result');
-      expect(test.records[0].result).toBe(2);
-    } catch (error) {
-      console.log(error);
-    }
+    const test = await postgres.raw('select 1+1 as result');
+    expect(test.records[0].result).toBe(2);
   });
 });
 
@@ -58,6 +54,10 @@ describe('data-api-postgres', () => {
     it('should insert two rows in a transaction', async () => {
       await commonTests.insertTwoRowsInTransaction(postgres);
     });
+
+    it('should insert a batch at once', async () => {
+      await commonTests.insertBatch(postgres);
+    });
   });
 
   describe('update', () => {
@@ -75,6 +75,10 @@ describe('data-api-postgres', () => {
         await commonTests.updateRowWithJsonbReturning(postgres);
       }
     );
+
+    it('should update multiple rows in parallel', async () => {
+      await commonTests.updateMultipleParallel(postgres);
+    });
   });
 
   describe('select', () => {

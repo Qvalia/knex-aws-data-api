@@ -471,6 +471,39 @@ async function updateRowWithJsonbReturning(knex) {
   expect(rows[0].value).toEqual({ test: 'update' });
 }
 
+async function updateMultipleParallel(knex) {
+  const tableName = `common_test_${counter}`;
+  counter += 1;
+
+  const rowValues = ['test1', 'test2', 'test3', 'test4'];
+  await knex.schema.createTable(tableName, (table) => {
+    table.increments();
+    table.string('value');
+  });
+  // populate with rows to be updated
+  await knex.table(tableName).insert(rowValues.map(element => ({ value: element })));
+
+  const transaction = await knex.transaction();
+  try {
+    const rows = rowValues.map(element => knex(tableName)
+      .transacting(transaction)
+      .update({ value: (`updated ${  element}`) })
+      .where({ value: element })
+      .returning('*'));
+
+    const result = await Promise.all(rows);
+    await transaction.commit();
+
+    expect(result.length).toBe(rowValues.length);
+    result.forEach((element, index) => {
+      expect(element[0].value).toBe(`updated ${rowValues[index]}`);
+    });
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+}
+
 async function returnEmptyArrayForQueryOnEmptyTable(knex) {
   const tableName = `common_test_${counter}`;
   counter += 1;
@@ -498,6 +531,24 @@ async function insertTextArray(knex) {
   const [row] = await knex.select().from(tableName);
 
   expect(row.value).toEqual(['test']);
+}
+
+async function insertBatch(knex) {
+  const tableName = `common_test_${counter}`;
+  counter += 1;
+
+  await knex.schema.createTable(tableName, (table) => {
+    table.increments();
+    table.string('value');
+  });
+
+  const batchRows = [
+    { value: 'val 1' }, { value: 'val 2' }, { value: 'val 3' }, { value: 'val 4' }
+  ];
+  const rows = await knex.batchInsert(tableName, batchRows).returning('id');
+
+  expect(rows.length).toBe(4);
+  expect(rows[0]).toEqual({ id: 1 });
 }
 
 module.exports = {
@@ -529,4 +580,6 @@ module.exports = {
   updateARow,
   updateARowReturning,
   updateRowWithJsonbReturning,
+  updateMultipleParallel,
+  insertBatch
 };

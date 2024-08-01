@@ -4,6 +4,13 @@ const { migrateToLatest } = require('./migrations-test');
 
 let counter = 0;
 
+describe('Connection Check', () => {
+  it('Connection', async () => {
+    const test = await mysql.raw('select 1+1 as result');
+    expect(test.records[0].result).toBe(2);
+  });
+});
+
 describe('data-api-mysql', () => {
   beforeAll(async () => {
     const tables = await mysql
@@ -57,6 +64,10 @@ describe('data-api-mysql', () => {
     it('should insert two rows in a transaction', async () => {
       await commonTests.insertTwoRowsInTransaction(mysql);
     });
+
+    it('should insert a batch at once', async () => {
+      await commonTests.insertBatch(mysql);
+    });
   });
 
   describe('select', () => {
@@ -94,6 +105,10 @@ describe('data-api-mysql', () => {
   describe('update', () => {
     it('should update a row', async () => {
       await commonTests.updateARow(mysql);
+    });
+
+    it('should update multiple rows in parallel', async () => {
+      await commonTests.updateMultipleParallel(mysql);
     });
   });
 
