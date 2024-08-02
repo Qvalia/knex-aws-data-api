@@ -11,7 +11,7 @@ const config = {
   }
 };
 if (process.env.ENDPOINT_URL) {
-  config.options = {
+  config.connection.options = {
     endpoint: `${process.env.ENDPOINT_URL}:${process.env.DATA_API_PORT}`
   };
 }
