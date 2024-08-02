@@ -483,17 +483,25 @@ async function updateMultipleParallel(knex) {
   // populate with rows to be updated
   await knex.table(tableName).insert(rowValues.map(element => ({ value: element })));
 
-  const rows = rowValues.map(element => knex(tableName)
-    .update({ value: (`updated ${  element}`) })
-    .where({ value: element })
-    .returning('*'));
+  const transaction = await knex.transaction();
+  try {
+    const rows = rowValues.map(element => knex(tableName)
+      .transacting(transaction)
+      .update({ value: (`updated ${  element}`) })
+      .where({ value: element })
+      .returning('*'));
 
-  const result = await Promise.all(rows);
+    const result = await Promise.all(rows);
+    await transaction.commit();
 
-  expect(result.length).toBe(rowValues.length);
-  result.forEach((element, index) => {
-    expect(element[0].value).toBe(`updated ${rowValues[index]}`);
-  });
+    expect(result.length).toBe(rowValues.length);
+    result.forEach((element, index) => {
+      expect(element[0].value).toBe(`updated ${rowValues[index]}`);
+    });
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
 }
 
 async function returnEmptyArrayForQueryOnEmptyTable(knex) {
