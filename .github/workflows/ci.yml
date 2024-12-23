@@ -13,24 +13,24 @@ env:
   DB_REGION: ${{ vars.DB_REGION }}
   DB_SECRET_ARN: ${{ vars.DB_SECRET_ARN }}
   DATA_API_PORT: ${{ vars.DATA_API_PORT }}
+  ENDPOINT_URL: ${{ vars.ENDPOINT_URL }}
   AWS_SDK_LOAD_CONFIG: 1
+  AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
+  AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+  AWS_REGION: ${{ vars.DB_REGION }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
     environment: CI
-    strategy:
-      matrix:
-        node-version: [18.x]
-
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version-file: '.nvmrc'
       - name: Build the stack
-        run: docker-compose up -d
+        run: docker compose up -d
       - run: npm ci
       - name: Build
         run: npm run test

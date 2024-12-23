@@ -96,7 +96,7 @@ describe('query parsing', () => {
 
     test('invalid type (error)', async () => {
       const result = () => parseParams(['query', 'string']);
-      expect(result).toThrow('Parameters must be an object or array');
+      expect(result).toThrow(`'parameters' must be an object or array`);
     });
 
     test('invalid type in object (error)', async () => {
