@@ -25,9 +25,40 @@ function knexAdapter(ClientRDSDataAPI, Client, dialect) {
       return new DataAPITransaction(this, ...args);
     },
 
+    /*
+     * One Data API client per knex instance, not one per pooled connection.
+     *
+     * The Data API is stateless HTTP, so a single client can serve the whole pool. Building
+     * one per connection gave each its own SDK client, its own HTTPS agent, its own TLS
+     * session and its own DNS lookup - and nothing ever closed them, because
+     * `destroyRawConnection` below could not. In a long-lived process (a warm Lambda, say)
+     * the abandoned agents keep their keep-alive sockets open until the process runs out of
+     * file descriptors, at which point name resolution itself starts failing with EBUSY.
+     *
+     * Each pooled connection still gets its own object, because knex writes `__knexTxId` to
+     * it and data-api-transaction.js writes `isTransaction` and `rdsTransactionId`. Those
+     * land as own properties on the wrapper while the client's methods come off the
+     * prototype, so concurrent transactions stay isolated.
+     */
     acquireConnection() {
-      const connection = this._driver(this.connectionSettings);
-      return Promise.resolve(connection);
+      if (!this.__dataApiClient) {
+        this.__dataApiClient = this._driver(this.connectionSettings);
+      }
+      return Promise.resolve(Object.create(this.__dataApiClient));
+    },
+
+    /*
+     * A pooled connection is just the wrapper above - there is no socket of its own to
+     * close, and the client it inherits from is shared, so tearing that down here would
+     * break every other connection in the pool.
+     *
+     * This override matters: without it the dialect's own implementation runs, which calls
+     * `connection.end()`. A Data API client has no such method, so every reaped connection
+     * threw `TypeError: connection.end is not a function`, knex logged it as a connection
+     * error and discarded the connection anyway - which is how the clients leaked.
+     */
+    destroyRawConnection() {
+      return Promise.resolve();
     },
 
     // Destroy - no connection pool to tear down, so just resolve
