@@ -55,6 +55,14 @@ describe('data-api-postgres', () => {
       await commonTests.insertTwoRowsInTransaction(postgres);
     });
 
+    it('should leave nothing behind when a transaction is rolled back', async () => {
+      await commonTests.rollBackATransaction(postgres);
+    });
+
+    it('should roll back when the transaction callback throws', async () => {
+      await commonTests.rollBackWhenTheTransactionThrows(postgres);
+    });
+
     it('should insert a batch at once', async () => {
       await commonTests.insertBatch(postgres);
     });

@@ -411,6 +411,54 @@ async function insertTwoRowsInTransaction(knex) {
   expect(rows.length).toBe(2);
 }
 
+/*
+ * The commit path is covered by the tests above; these two take the rollback path, which
+ * reads the same per-connection `rdsTransactionId` that commit does. That matters since
+ * the pool shares one Data API client across connections - the transaction id must stay on
+ * the connection, never on the client every other connection inherits from.
+ */
+async function rollBackATransaction(knex) {
+  const tableName = `common_test_${counter}`;
+  counter += 1;
+
+  await knex.schema.createTable(tableName, (table) => {
+    table.increments();
+    table.string('value');
+  });
+  await knex.table(tableName).insert({ value: 'before' });
+
+  const transaction = await knex.transaction();
+  await knex(tableName).transacting(transaction).insert({ value: 'inserted in the transaction' });
+  await knex(tableName).transacting(transaction).update({ value: 'changed' }).where({ value: 'before' });
+  await transaction.rollback();
+
+  const rows = await knex.select().from(tableName);
+
+  // Neither statement may survive: the insert is gone and the update never happened.
+  expect(rows.length).toBe(1);
+  expect(rows[0].value).toBe('before');
+}
+
+async function rollBackWhenTheTransactionThrows(knex) {
+  const tableName = `common_test_${counter}`;
+  counter += 1;
+
+  await knex.schema.createTable(tableName, (table) => {
+    table.increments();
+    table.string('value');
+  });
+
+  // The shape real code hits: knex rolls back for you when the callback rejects.
+  await expect(knex.transaction(async (trx) => {
+    await trx.table(tableName).insert({ value: 'Test1' });
+    throw new Error('rolling this one back');
+  })).rejects.toThrow('rolling this one back');
+
+  const rows = await knex.select().from(tableName);
+
+  expect(rows.length).toBe(0);
+}
+
 async function updateARow(knex) {
   const tableName = `common_test_${counter}`;
   counter += 1;
@@ -577,6 +625,8 @@ module.exports = {
   returnAnErrorForInvalidInsert,
   returnAnErrorForInvalidSelect,
   returnEmptyArrayForQueryOnEmptyTable,
+  rollBackATransaction,
+  rollBackWhenTheTransactionThrows,
   updateARow,
   updateARowReturning,
   updateRowWithJsonbReturning,
